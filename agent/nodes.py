@@ -5,7 +5,7 @@ from llama_index.core import VectorStoreIndex, Document
 
 from agent.state import ParentState, SubgraphState
 
-llm = Ollama(model="llama2", request_timeout=120.0, temperature=0.3)
+llm = Ollama(model="llama3.2", request_timeout=120.0, temperature=0.3)
 embed_model = OllamaEmbedding(model_name="nomic-embed-text")
 
 dummy_index = VectorStoreIndex.from_documents(

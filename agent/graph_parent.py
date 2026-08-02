@@ -21,6 +21,3 @@ workflow.set_entry_point("initial_retrieve")
 workflow.add_edge("initial_retrieve", "refine_docs")
 workflow.add_edge("refine_docs", "generate_answer")
 workflow.add_edge("generate_answer", END)
-
-# Compile the final, complete application
-parent_app = workflow.compile()
