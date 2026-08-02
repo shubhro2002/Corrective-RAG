@@ -3,14 +3,12 @@ import os
 
 from pymongo import MongoClient
 from dotenv import load_dotenv
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, StorageContext
-from llama_index.embeddings.ollama import OllamaEmbedding
-from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
-from llama_index.core.node_parser import TokenTextSplitter
 from langgraph.checkpoint.mongodb import MongoDBSaver
+from langchain_core.runnables import RunnableConfig
 
-# Import our custom graph
+# Import our custom graph and state schema
 from agent.graph_parent import workflow
+from agent.state import ParentState
 
 # Load environment variables
 load_dotenv()
@@ -21,7 +19,7 @@ def main():
     # 1. Setup MongoDB Connection
     MONGODB_URI = os.environ.get("MONGODB_URI")
     if not MONGODB_URI:
-        print("❌ Error: MONGODB_URI not found in .env file.")
+        print("Error: MONGODB_URI not found in .env file.")
         return
         
     mongo_client = MongoClient(MONGODB_URI)
@@ -37,15 +35,22 @@ def main():
     
     # 3. Define the Thread (Conversation ID)
     # In a real app, this would be a unique UUID per user session
-    config = {"configurable": {"thread_id": "resume_project_user_1"}}
+    config: RunnableConfig = {"configurable": {"thread_id": "resume_project_user_1"}}
     
     # 4. Execute the Graph
     user_query = "How much did the software division of Acme Corp grow?"
     print(f"User Query: {user_query}\n")
     
+    # Explicitly instantiate the TypedDict to satisfy static type checkers
+    initial_input = ParentState(
+        original_question=user_query,
+        documents=[],
+        final_answer=None
+    )
+    
     # Run the pipeline
     final_state = app.invoke(
-        {"original_question": user_query},
+        initial_input,
         config=config
     )
     
