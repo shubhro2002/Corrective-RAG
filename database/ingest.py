@@ -9,7 +9,8 @@ from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
 from llama_index.core.node_parser import TokenTextSplitter
 from llama_index.core.readers.base import BaseReader
 
-load_dotenv()
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+load_dotenv(os.path.join(root_dir, '.env'))
 
 class PDFPlumberReader(BaseReader):
     """Custom parser to extract text cleanly, preserving tabular structures."""
@@ -33,15 +34,12 @@ def ingest_documents():
         print(f"Created '{data_dir}' directory. Please drop some PDFs or TXT files inside and run again.")
         return
 
-    file_extractor = {
-        ".pdf": PDFPlumberReader(),
-        ".txt": SimpleDirectoryReader(input_dir=data_dir, file_extractor=None)
-    }
+    file_extractor: dict[str, BaseReader] = {".pdf": PDFPlumberReader()}
 
     # Load documents using LlamaIndex's built-in directory parser
     documents = SimpleDirectoryReader(
         data_dir, 
-        file_extractor=file_extractor
+        file_extractor=file_extractor,
     ).load_data()
 
     if not documents:

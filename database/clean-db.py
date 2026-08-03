@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 
 def clear_database():
     print("--- CONNECTING TO MONGODB ---")
-    load_dotenv()
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    load_dotenv(os.path.join(root_dir, '.env'))
     
     # 1. Connect to MongoDB
     MONGODB_URI = os.environ.get("MONGODB_URI")

@@ -5,8 +5,8 @@ from pymongo import MongoClient
 from pymongo.operations import SearchIndexModel
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+load_dotenv(os.path.join(root_dir, '.env'))
 
 def setup_database():
     print("--- CONFIGURING MONGODB ATLAS INFRASTRUCTURE ---")
