@@ -30,6 +30,10 @@ wheels/
 *.docx
 *.txt
 
+!data/
+!data/.txt
+!data/.pdf
+
 .DS_Store
 .DS_Store?
 ._*
