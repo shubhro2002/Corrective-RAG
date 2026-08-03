@@ -1,6 +1,6 @@
 import sys
 import os
-
+import certifi
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from langgraph.checkpoint.mongodb import MongoDBSaver
@@ -22,7 +22,7 @@ def main():
         print("Error: MONGODB_URI not found in .env file.")
         return
         
-    mongo_client = MongoClient(MONGODB_URI)
+    mongo_client = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
     
     # 2. Configure the Checkpointer (Memory)
     print("--- COMPILING GRAPH WITH MONGODB MEMORY ---\n")

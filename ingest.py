@@ -1,15 +1,27 @@
-import sys
 import os
-
+import certifi
+import pdfplumber
 from pymongo import MongoClient
 from dotenv import load_dotenv
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, StorageContext
+from llama_index.core import Document, SimpleDirectoryReader, VectorStoreIndex, StorageContext
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
 from llama_index.core.node_parser import TokenTextSplitter
+from llama_index.core.readers.base import BaseReader
 
-# Load environment variables from .env file
 load_dotenv()
+
+class PDFPlumberReader(BaseReader):
+    """Custom parser to extract text cleanly, preserving tabular structures."""
+    def load_data(self, file, extra_info=None):
+        text = ""
+        with pdfplumber.open(file) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text(layout=True) # attempts to preserve visual spacing (like tables)
+                if page_text:
+                    text += page_text + "\n\n"
+        
+        return [Document(text=text, extra_info=extra_info or {})]
 
 def ingest_documents():
     print("--- STARTING DATA INGESTION ---")
@@ -21,8 +33,17 @@ def ingest_documents():
         print(f"Created '{data_dir}' directory. Please drop some PDFs or TXT files inside and run again.")
         return
 
+    file_extractor = {
+        ".pdf": PDFPlumberReader(),
+        ".txt": SimpleDirectoryReader(input_dir=data_dir, file_extractor=None)
+    }
+
     # Load documents using LlamaIndex's built-in directory parser
-    documents = SimpleDirectoryReader(data_dir).load_data()
+    documents = SimpleDirectoryReader(
+        data_dir, 
+        file_extractor=file_extractor
+    ).load_data()
+
     if not documents:
         print(f"No documents found in '{data_dir}'. Add some files and try again!")
         return
@@ -35,10 +56,10 @@ def ingest_documents():
     # 3. Setup MongoDB Connection
     MONGODB_URI = os.environ.get("MONGODB_URI")
     if not MONGODB_URI:
-        print("❌ Error: MONGODB_URI not found in .env file.")
+        print("Error: MONGODB_URI not found in .env file.")
         return
         
-    mongo_client = MongoClient(MONGODB_URI)
+    mongo_client = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
     
     DB_NAME = "crag_database"
     COLLECTION_NAME = "vector_store"

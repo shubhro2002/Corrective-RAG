@@ -1,5 +1,6 @@
 import os
-from typing import Any, List
+import certifi
+from pymongo import MongoClient
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from llama_index.llms.ollama import Ollama
@@ -20,7 +21,7 @@ embed_model = OllamaEmbedding(model_name="nomic-embed-text")
 
 # Connect to MongoDB
 MONGODB_URI = os.environ.get("MONGODB_URI")
-mongo_client = MongoClient(MONGODB_URI)
+mongo_client = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
 
 vector_store = MongoDBAtlasVectorSearch(
     mongodb_client=mongo_client,

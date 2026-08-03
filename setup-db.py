@@ -1,5 +1,6 @@
 import os
 import time
+import certifi
 from pymongo import MongoClient
 from pymongo.operations import SearchIndexModel
 from dotenv import load_dotenv
@@ -15,7 +16,7 @@ def setup_database():
         print("❌ Error: MONGODB_URI not found in .env file.")
         return
 
-    client = MongoClient(MONGODB_URI)
+    client = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
     
     db_name = "crag_database"
     collection_name = "vector_store"
