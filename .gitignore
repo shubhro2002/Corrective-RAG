@@ -23,9 +23,6 @@ wheels/
 .installed.cfg
 *.egg
 
-data/*
-!data/.gitkeep
-
 *.pdf
 *.csv
 *.xlsx
