@@ -1,0 +1,21 @@
+Meeting: Q3 Company All-Hands
+Date: July 15, 2026
+Location: Main Atrium & Zoom
+
+Agenda Items & Notes:
+
+Q2 Review (Presented by CEO, David Thorne)
+
+Revenue exceeded expectations by 8%.
+
+David announced that the annual company retreat will be held in Austin, Texas this year, scheduled for the second week of October.
+
+Product Updates (Presented by VP of Eng, Sarah Jenkins)
+
+The "Cloud Forge" module is officially delayed. It was originally slated for August, but due to the UI overhaul, the new launch date is October 2nd, 2026.
+
+The legacy COBOL servers will be fully unplugged by December 31st.
+
+Facilities & Admin
+
+The cafeteria is switching vendors. Starting next Monday, "Bean & Byte Catering" will be taking over the daily lunch service.

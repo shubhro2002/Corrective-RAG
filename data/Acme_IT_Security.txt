@@ -1,0 +1,11 @@
+Acme Corp IT Security Protocol
+Last Updated: May 2026
+
+Password Requirements
+All employee passwords must be a minimum of 14 characters, containing at least one uppercase letter, one number, and one symbol. Passwords automatically expire and must be rotated every 90 days.
+
+Remote Access
+Employees accessing the Acme Corp intranet from a remote location must use the approved company VPN client (Cisco AnyConnect). Split-tunneling is strictly disabled for security reasons.
+
+Incident Reporting
+If you suspect your laptop has been compromised, or if you receive a highly suspicious phishing email, you must immediately forward the details to the Security Operations team at sec-ops@acmecorp.com. Do NOT forward the email to your manager.

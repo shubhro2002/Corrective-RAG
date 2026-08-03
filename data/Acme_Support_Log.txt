@@ -1,0 +1,13 @@
+Ticket ID: #1042
+Date: August 1, 2026
+Agent: Marcus Vance
+Customer: Elena Rostova (TechFlow Inc.)
+Subject: Quantum Anvil Integration Failure
+
+[10:14 AM] Marcus: Thank you for contacting Acme Corp support. How can I help you today?
+[10:15 AM] Elena: Hi Marcus. We are trying to integrate the new Quantum Anvil API into our dashboard, but we keep getting a specific error when authenticating.
+[10:16 AM] Marcus: I can help with that. Could you provide the exact error code you are seeing?
+[10:17 AM] Elena: Yes, it says "ERR-77X: Token Expired or Invalid". We just generated the token this morning.
+[10:19 AM] Marcus: Ah, I see. The ERR-77X code specifically happens when the server clock on your end is out of sync with our AWS servers by more than 30 seconds. Could you check your NTP (Network Time Protocol) settings?
+[10:22 AM] Elena: You were right! Our staging server had drifted by 45 seconds. I re-synced it and the API is connecting perfectly now.
+[10:23 AM] Marcus: Excellent! Glad we could get that resolved. Have a great day.
