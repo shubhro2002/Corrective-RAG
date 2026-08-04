@@ -16,6 +16,8 @@ This project goes beyond standard linear RAG by implementing a cyclical "*Refine
 
 - **Interactive Web UI**: Features a sleek, responsive Streamlit frontend that visualizes the agent's "thinking" process and maintains conversational memory.
 
+![Web UI](images/Web_UI.png)
+
 ## Architecture Flow
 
 ```mermaid
@@ -40,19 +42,19 @@ graph TD
     class H output;
 ```
 
-1. User Query: Entered via the Streamlit UI.
+1. **User Query**: Entered via the Streamlit UI.
 
-2. Initial Retrieval: LlamaIndex queries MongoDB Atlas for the Top-5 most semantically similar document chunks.
+2. **Initial Retrieval**: LlamaIndex queries MongoDB Atlas for the Top-5 most semantically similar document chunks.
 
-3. Refinement Subgraph (The Loop):
+3. **Refinement Subgraph** (The Loop):
 
-   - Grader Node: The LLM evaluates the relevance of the retrieved chunks against the original query.
+   - **Grader Node**: The LLM evaluates the relevance of the retrieved chunks against the original query.
 
-   - Query Transformation Node: If chunks are irrelevant, the LLM rewrites the query to be more targeted.
+   - **Query Transformation Node**: If chunks are irrelevant, the LLM rewrites the query to be more targeted.
 
-   - Re-Retrieval: The system searches MongoDB again using the new query. (Capped at 3 loops to respect hardware limits).
+   - **Re-Retrieval**: The system searches MongoDB again using the new query. (Capped at 3 loops to respect hardware limits).
 
-4. Generation Node: Once relevant context is found (or the loop limit is reached), the LLM synthesizes a strict, hallucination-free answer.
+4. **Generation Node**: Once relevant context is found (or the loop limit is reached), the LLM synthesizes a strict, hallucination-free answer.
 
 ## Tech Stack
 
@@ -153,9 +155,21 @@ Try these queries in the UI to watch the agentic routing and memory in action:
 
 - "Who is the lead for Project Phoenix and what is the budget?" (Direct retrieval)
 
-- "I am trying to integrate the Quantum Anvil API but I keep getting error code ERR-77X." (Contextual troubleshooting)
+![Sample Response-1](images/Question_1_response.png)
+
+![Terminal Output](images/Question_1_terminal_output.png)
+
+- "I am trying to integrate the Quantum Anvil API but I keep getting error code ERR-77X. What is causing this?" (Contextual troubleshooting)
+
+![Sample Response-2](images/Question_2_response.png)
+
+![Terminal Output](images/Question_2_terminal_output.png)
 
 - "Who is the CEO of Microsoft?" (Tests the Grader rejecting irrelevant data and bypassing hallucinations).
+
+![Sample Response-3](images/Question_3_response.png)
+
+![Terminal Output](images/Question_3_terminal_output.png)
 
 ## Database Utilities
 
