@@ -135,6 +135,19 @@ python database/setup-db.py
 # Parses, chunks, embeds, and uploads the documents in /data
 python database/ingest.py
 ```
+
+## The "Acme Corp" Dataset (Dummy Data)
+
+To properly demonstrate the self-correcting logic of this pipeline, the /data folder comes pre-loaded with synthetic documents belonging to "Acme Corp", a fictional enterprise.
+
+This dataset was intentionally designed with specific "trap" questions and edge cases in mind, including:
+
+- **Strict IT Policies & HR Rules**: To test if the LLM's safety alignments interfere with internal corporate data extraction.
+
+- **Financial Reports & Project Budgets**: To test multi-fact reasoning and tabular data extraction.
+
+- **Customer Support Logs & Meeting Minutes**: To test how well the embedding models handle messy, conversational text formats.
+
 ## Usage
 
 Launch the Interactive Web UI:
