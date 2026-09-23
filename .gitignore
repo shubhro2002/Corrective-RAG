@@ -30,6 +30,8 @@ wheels/
 *.docx
 *.txt
 
+!reqirements.txt
+
 !data/
 !data/.txt
 !data/.pdf
