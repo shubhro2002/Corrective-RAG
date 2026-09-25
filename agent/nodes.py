@@ -2,7 +2,7 @@ import os
 import certifi
 from pymongo import MongoClient
 from dotenv import load_dotenv
-from llama_index.llms.ollama import Ollama
+from langchain_openai import ChatOpenAI
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
@@ -15,7 +15,15 @@ load_dotenv(os.path.join(root_dir, '.env'))
 # ==========================================
 # 1. Initialize Local Models & Vector Store
 # ==========================================
-llm = Ollama(model="qwen2.5-coder:3b", request_timeout=120.0, temperature=0.2)
+# Point ChatOpenAI to OpenRouter
+llm = ChatOpenAI(
+    model="openai/gpt-4o-mini",
+    temperature=0.0,
+    api_key=os.environ.get("OPENROUTER_API_KEY"), # type: ignore
+    base_url="https://openrouter.ai/api/v1"
+)
+
+# Retain Ollama for embeddings to prevent breaking the existing MongoDB Vector Index
 embed_model = OllamaEmbedding(model_name="nomic-embed-text")
 
 # Connect to MongoDB
@@ -76,7 +84,7 @@ def generate_answer(state: ParentState):
         "Extraction:"
     )
     
-    response = llm.complete(prompt)
+    response = llm.invoke(prompt).content
     return {"final_answer": str(response)}
 
 # ==========================================
@@ -100,7 +108,7 @@ def grade_documents(state: SubgraphState):
             "Rule: Output exactly one word: 'yes' or 'no'. Do not explain.\n"
             "Classification:"
         )
-        response = llm.complete(prompt).text.strip().lower()
+        response = str(llm.invoke(prompt).content).strip().lower()
         
         # ADDED VISIBILITY: See exactly what the LLM decided
         print(f"[DEBUG] Grader LLM responded: '{response}'")
@@ -125,8 +133,7 @@ def transform_query(state: SubgraphState):
         "Rewritten Query:"
     )
     
-    response = llm.complete(prompt)
-    new_query = str(response).strip()
+    new_query = str(llm.invoke(prompt).content).strip()
     
     print(f"--- [SUBGRAPH] NEW QUERY: {new_query} ---")
     return {"current_query": new_query}
