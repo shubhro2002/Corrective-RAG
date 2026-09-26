@@ -5,6 +5,18 @@ import uuid
 from pymongo import MongoClient
 import certifi
 from dotenv import load_dotenv
+
+from phoenix.otel import register
+from openinference.instrumentation.langchain import LangChainInstrumentor
+from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+
+tracer_provider = register(
+    project_name="acme-corp-crag-pipeline",
+    endpoint="http://localhost:6006/v1/traces"
+)
+LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
+
 from langgraph.checkpoint.mongodb import MongoDBSaver
 from langchain_core.runnables import RunnableConfig
 
@@ -42,7 +54,7 @@ if "thread_id" not in st.session_state:
 
 with st.sidebar:
     st.title("🧠 Agentic CRAG")
-    st.markdown("A localized, multi-agent Corrective RAG system running on a 3B LLM.")
+    st.markdown("A multi-agent Corrective RAG system ")
     st.divider()
     st.markdown("**Session Memory ID:**")
     st.code(st.session_state.thread_id)
