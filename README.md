@@ -60,7 +60,7 @@ graph TD
 
 5. **Observability**: OpenTelemetry silently captures all spans, latency, token usage, and retrieval payloads, pushing them to a local Arize Phoenix dashboard.
 
-
+![Observability Dashboard](images/Sample_Trace_Info.png)
 
 ## Tech Stack
 
@@ -197,6 +197,14 @@ Try these queries in the UI to watch the agentic routing and memory in action:
 ![Sample Response-3](images/Question_3_response.png)
 
 ![Terminal Output](images/Question_3_terminal_output.png)
+
+## Observability Utilities
+
+Sample traces and metrics are automatically captured by OpenTelemetry and pushed to the Phoenix dashboard. You can visualize:
+
+![Observability Dashboard](images/Retriever_Span.png)
+
+![Observability Dashboard](images/LLM_Span.png)
 
 ## Database Utilities
 
