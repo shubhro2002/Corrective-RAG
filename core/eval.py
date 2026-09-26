@@ -33,7 +33,7 @@ def run_evaluations():
     
     retriever_df = client.spans.get_spans_dataframe(
         query=retriever_query, 
-        project_name="acme-crag-pipeline"
+        project_name="acme-corp-crag-pipeline"
     )
     
     if not retriever_df.empty:
@@ -74,7 +74,7 @@ def run_evaluations():
     
     generator_df = client.spans.get_spans_dataframe(
         query=generator_query, 
-        project_name="acme-crag-pipeline"
+        project_name="acme-corp-crag-pipeline"
     )
     
     if not generator_df.empty:
