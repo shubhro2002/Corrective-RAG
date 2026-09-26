@@ -4,7 +4,7 @@ import pdfplumber
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from llama_index.core import Document, SimpleDirectoryReader, VectorStoreIndex, StorageContext
-from llama_index.embeddings.ollama import OllamaEmbedding
+from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
 from llama_index.core.node_parser import TokenTextSplitter
 from llama_index.core.readers.base import BaseReader
@@ -49,7 +49,12 @@ def ingest_documents():
     print(f"Loaded {len(documents)} document chunks/pages.")
 
     # 2. Initialize the Local Embedding Model
-    embed_model = OllamaEmbedding(model_name="nomic-embed-text")
+    embed_model = OpenAIEmbedding(
+        model_name="openai/text-embedding-3-small", 
+        api_key=os.environ.get("OPENROUTER_API_KEY"),
+        api_base="https://openrouter.ai/api/v1",
+        embed_batch_size=100
+    )
 
     # 3. Setup MongoDB Connection
     MONGODB_URI = os.environ.get("MONGODB_URI")

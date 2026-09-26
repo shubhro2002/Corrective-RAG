@@ -3,7 +3,7 @@ import certifi
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from llama_index.embeddings.ollama import OllamaEmbedding
+from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -24,8 +24,12 @@ llm = ChatOpenAI(
     base_url="https://openrouter.ai/api/v1"
 )
 
-# Retain Ollama for embeddings to prevent breaking the existing MongoDB Vector Index
-embed_model = OllamaEmbedding(model_name="nomic-embed-text")
+embed_model = OpenAIEmbedding(
+    model_name="openai/text-embedding-3-small", 
+    api_key=os.environ.get("OPENROUTER_API_KEY"),
+    api_base="https://openrouter.ai/api/v1",
+    embed_batch_size=100
+)
 
 # Connect to MongoDB
 MONGODB_URI = os.environ.get("MONGODB_URI")
@@ -44,7 +48,6 @@ index = VectorStoreIndex.from_vector_store(
     embed_model=embed_model
 )
 
-# Retrieve the top 2 documents
 retriever = index.as_retriever(similarity_top_k=5)
 
 # ==========================================
@@ -59,7 +62,7 @@ def initial_retrieve(state: ParentState):
     nodes = retriever.retrieve(question)
     docs = [node.get_content() for node in nodes]
     
-    # 🔍 ADDED VISIBILITY: Let's see what MongoDB is actually returning
+    # ADDED VISIBILITY: Let's see what MongoDB is actually returning
     print(f"[DEBUG] Retrieved {len(docs)} chunks from MongoDB.")
     for i, doc in enumerate(docs):
         # Print the first 150 characters of each chunk
@@ -72,7 +75,7 @@ def generate_answer(state: ParentState):
     docs = state["documents"]
     
     print("\n" + "="*50)
-    print("[DEBUG] GENERATOR NODE TRIGGERED 🚨")
+    print("[DEBUG] GENERATOR NODE TRIGGERED")
     print(f"Target Question: {question}")
     print(f"Number of Documents Passed in State: {len(docs)}")
     
@@ -111,7 +114,7 @@ def grade_documents(state: SubgraphState):
     relevant_docs = []
     
     for doc in docs:
-        # PROMPT TUNING: Made the grader slightly more lenient for the 3B model
+        
         prompt = (
             "Task: Classify if the Document contains the answer to the Query.\n"
             f"Query: {query}\n"
@@ -157,6 +160,6 @@ def re_retrieve(state: SubgraphState):
     nodes = retriever.retrieve(query)
     docs = [node.get_content() for node in nodes]
     
-    print(f"🔍 [DEBUG] Re-retrieved {len(docs)} chunks from MongoDB.")
+    print(f"[DEBUG] Re-retrieved {len(docs)} chunks from MongoDB.")
     
     return {"documents": docs}

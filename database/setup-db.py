@@ -13,7 +13,7 @@ def setup_database():
     
     MONGODB_URI = os.environ.get("MONGODB_URI")
     if not MONGODB_URI:
-        print("❌ Error: MONGODB_URI not found in .env file.")
+        print("Error: MONGODB_URI not found in .env file.")
         return
 
     client = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
@@ -27,19 +27,19 @@ def setup_database():
     # 1. Create the collection if it doesn't exist (Index needs a collection to attach to)
     if collection_name not in db.list_collection_names():
         db.create_collection(collection_name)
-        print(f"✅ Created empty collection: '{collection_name}' in '{db_name}'")
+        print(f"Created empty collection: '{collection_name}' in '{db_name}'")
     else:
-        print(f"✅ Collection '{collection_name}' already exists.")
+        print(f"Collection '{collection_name}' already exists.")
         
     collection = db[collection_name]
     
     # 2. Check if the index already exists
     existing_indexes = list(collection.list_search_indexes())
     if any(idx.get("name") == index_name for idx in existing_indexes):
-        print(f"✅ Vector search index '{index_name}' already exists. You are good to go!")
+        print(f"Vector search index '{index_name}' already exists. You are good to go!")
         return
 
-    print(f"⏳ Creating vector search index '{index_name}'...")
+    print(f"Creating vector search index '{index_name}'...")
     
     # 3. Define the Vector Search Index Model
     # nomic-embed-text outputs 768 dimensions. We use cosine similarity for comparison.
@@ -48,7 +48,7 @@ def setup_database():
             "fields": [
                 {
                     "type": "vector",
-                    "numDimensions": 768,
+                    "numDimensions": 1536,
                     "path": "embedding",
                     "similarity": "cosine"
                 }
@@ -61,15 +61,15 @@ def setup_database():
     # 4. Push the index configuration to Atlas
     collection.create_search_index(model=search_index_model)
     
-    print("⏳ Index creation initiated in the cloud. This usually takes 1-2 minutes.")
-    print("⏳ Waiting for index to become READY...")
+    print("Index creation initiated in the cloud. This usually takes 1-2 minutes.")
+    print("Waiting for index to become READY...")
     
     # 5. Wait for the index to finish building
     while True:
         # Fetch the specific index status
         indexes = list(collection.list_search_indexes(index_name))
         if indexes and indexes[0].get("status") == "READY":
-            print("\n🚀 SUCCESS: Index is READY!")
+            print("\nSUCCESS: Index is READY!")
             print("You can now safely run 'python ingest.py' to add your documents.")
             break
             
