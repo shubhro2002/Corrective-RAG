@@ -68,30 +68,35 @@ def initial_retrieve(state: ParentState):
     return {"documents": docs}
 
 def generate_answer(state: ParentState):
-    """Synthesizes the final answer using the refined documents."""
     question = state["original_question"]
     docs = state["documents"]
-    print("--- [PARENT] GENERATING FINAL ANSWER ---")
+    
+    print("\n" + "="*50)
+    print("[DEBUG] GENERATOR NODE TRIGGERED 🚨")
+    print(f"Target Question: {question}")
+    print(f"Number of Documents Passed in State: {len(docs)}")
     
     context = "\n\n".join(docs)
-    prompt = (
-        "Task: Extract target information from the provided Context.\n\n"
+    
+    system_prompt = (
+        "You are a precise technical assistant. Answer the user's question using ONLY the provided Context.\n\n"
         f"Context:\n{context}\n\n"
-        f"User's Question: {question}\n\n"
         "Rules:\n"
-        "1. Output exactly what is stated in the Context.\n"
-        "2. Do not include conversational filler (e.g., 'I cannot assist', 'Here is the info').\n"
-        "3. If the Context does not contain the target information, output exactly: 'I do not have this information in my current knowledge base.'\n\n"
-        "Extraction:"
+        "1. Provide the factual answer directly without conversational filler.\n"
+        "2. Do not repeat or echo the User's Question.\n"
+        "3. If the Context does not contain the answer, output exactly: 'I do not have this information in my current knowledge base.'"
     )
-
+    
     messages = [
-        SystemMessage(content=prompt),
+        SystemMessage(content=system_prompt),
         HumanMessage(content=question)
     ]
+    
+    response = llm.invoke(messages)
+    print(f"\n[DEBUG] RAW LLM OUTPUT:\n{response.content}")
+    print("="*50 + "\n")
 
-    response = llm.invoke(messages).content
-    return {"final_answer": str(response)}
+    return {"final_answer": response.content}
 
 # ==========================================
 # 3. Subgraph Nodes (Refinement Loop)
