@@ -6,6 +6,7 @@ from langchain_openai import ChatOpenAI
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
+from langchain_core.messages import SystemMessage, HumanMessage
 
 from agent.state import ParentState, SubgraphState
 
@@ -76,15 +77,20 @@ def generate_answer(state: ParentState):
     prompt = (
         "Task: Extract target information from the provided Context.\n\n"
         f"Context:\n{context}\n\n"
-        f"Target Information to Extract: {question}\n\n"
+        f"User's Question: {question}\n\n"
         "Rules:\n"
         "1. Output exactly what is stated in the Context.\n"
         "2. Do not include conversational filler (e.g., 'I cannot assist', 'Here is the info').\n"
         "3. If the Context does not contain the target information, output exactly: 'I do not have this information in my current knowledge base.'\n\n"
         "Extraction:"
     )
-    
-    response = llm.invoke(prompt).content
+
+    messages = [
+        SystemMessage(content=prompt),
+        HumanMessage(content=question)
+    ]
+
+    response = llm.invoke(messages).content
     return {"final_answer": str(response)}
 
 # ==========================================
