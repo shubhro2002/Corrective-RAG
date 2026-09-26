@@ -60,6 +60,8 @@ graph TD
 
 5. **Observability**: OpenTelemetry silently captures all spans, latency, token usage, and retrieval payloads, pushing them to a local Arize Phoenix dashboard.
 
+
+
 ## Tech Stack
 
 - **Orchestration**: LangGraph, LangChain
