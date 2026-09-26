@@ -1,18 +1,20 @@
 # Corrective Agentic RAG (CRAG) Pipeline
 
-A local, multi-agent Corrective Retrieval-Augmented Generation (CRAG) system built with LangGraph, LlamaIndex, and MongoDB.
+A production-grade, multi-agent Corrective Retrieval-Augmented Generation (CRAG) system built with LangGraph, LlamaIndex, and MongoDB, heavily instrumented for full LLMOps observability.
 
-This project goes beyond standard linear RAG by implementing a cyclical "*Refinement Subgraph*." If retrieved documents are deemed irrelevant by the LLM Grader, the agent autonomously rewrites the user's query and searches again. It is designed to run highly efficient reasoning loops on constrained hardware (6GB VRAM) while eliminating hallucinations.
+This project goes beyond standard linear RAG by implementing a cyclical "*Refinement Subgraph*." If retrieved documents are deemed irrelevant by the LLM Grader, the agent autonomously rewrites the user's query and searches again. It leverages cloud-based APIs for high-speed inference and embeddings, backed by rigorous telemetry and continuous automated evaluation.
 
 ## Key Features
 
 - **Agentic Self-Correction**: Utilizes LangGraph to route queries, grade retrieved documents, and autonomously rewrite search queries if the initial context is insufficient.
 
-- **Dual-Purpose MongoDB Integration**: Leverages MongoDB Atlas for high-dimensional Vector Search (semantic retrieval) and as a NoSQL Checkpointer (persisting LangGraph agent state/memory across conversational turns).
+- **LLMOps & Observability**: Fully instrumented with OpenTelemetry and Arize Phoenix. Captures LLM spans, retrieval metrics, and tool execution traces in real-time. Includes automated evaluation scripts to grade document relevance (NDCG/Precision) and response faithfulness.
+
+- **MongoDB Integration**: Leverages MongoDB Atlas for 1536-dimensional Vector Search (semantic retrieval) and as a NoSQL Checkpointer (persisting LangGraph agent state/memory across conversational turns).
+
+- **Cloud-Scaled Inference**: Utilizes the OpenRouter API to seamlessly route requests to frontier models (`gpt-4o-mini` for reasoning, `text-embedding-3-small` for embeddings), ensuring high-speed, scalable performance.
 
 - **Custom Data Parsing**: Overrides default LlamaIndex PDF readers with custom `pdfplumber` extractors to preserve the structural integrity of tabular financial data and messy enterprise text.
-
-- **Hardware-Optimized (6GB VRAM)**: Safely runs 4-bit quantized 3B models (`qwen2.5-coder:3b`) concurrently with local embedding models (`nomic-embed-text`) by utilizing precise token-based chunking and hardcoded safety valves to prevent infinite reasoning loops.
 
 - **Interactive Web UI**: Features a sleek, responsive Streamlit frontend that visualizes the agent's "thinking" process and maintains conversational memory.
 
@@ -54,7 +56,9 @@ graph TD
 
    - **Re-Retrieval**: The system searches MongoDB again using the new query. (Capped at 3 loops to respect hardware limits).
 
-4. **Generation Node**: Once relevant context is found (or the loop limit is reached), the LLM synthesizes a strict, hallucination-free answer.
+4. **Generation Node**: Utilizing strict `SystemMessage` / `HumanMessage` role-prompting, the LLM synthesizes a strict, hallucination-free answer.
+
+5. **Observability**: OpenTelemetry silently captures all spans, latency, token usage, and retrieval payloads, pushing them to a local Arize Phoenix dashboard.
 
 ## Tech Stack
 
@@ -64,7 +68,9 @@ graph TD
 
 - **Database & Memory**: MongoDB Atlas (Vector Search)
 
-- **Local Inference**: Ollama (`qwen2.5-coder:3b` for strict rule adherence, `nomic-embed-text` for embeddings)
+- **LLMs & Embeddings**: OpenRouter API (`gpt-4o-mini`, `text-embedding-3-small`)
+
+- **LLMOps & Telemetry**: Arize Phoenix, OpenTelemetry (`openinference-instrumentation`)
 
 - **Frontend**: Streamlit
 
@@ -79,13 +85,14 @@ CRAG/
 │   └── subgraph_refine.py   # The cyclic evaluation/correction loop
 ├── core/
 │   ├── app.py               # Streamlit Web UI
+│   ├── eval.py              # Automated LLM-as-a-Judge evaluation script
 │   └── main.py              # CLI entry point for testing
 ├── data/                    # Synthetic Acme Corp PDFs and TXT files for testing
 ├── database/
 │   ├── clean-db.py          # Utility to drop MongoDB collections
 │   ├── ingest.py            # LlamaIndex chunking, embedding, and uploading
 │   └── setup-db.py          # Programmatic MongoDB Vector Search Index creation
-├── .env                     # Environment variables (MongoDB URI)
+├── .env                     # Environment variables (MongoDB URI, OpenRouter API Key)
 └── requirements.txt         # Project dependencies
 ```
 ## Setup & Installation
@@ -93,7 +100,7 @@ CRAG/
 ### 1. Prerequisites
 
 - Python 3.10+
-- `Ollama` installed locally
+- An `OpenRouter` account and API Key
 - A free `MongoDB Atlas` cluster
 
 ### 2. Install Dependencices
@@ -105,26 +112,18 @@ git clone https://github.com/shubhro2002/Corrective-RAG.git
 cd Corrective-RAG
 pip install -r requirements.txt
 ```
-### 3. Local Model Setup
 
-Ensure Ollama is running, then pull the required models:
+### 3. Environment Variables
 
-```bash
-ollama pull nomic-embed-text
-ollama pull qwen2.5-coder:3b
-```
-*(Note: To prevent cyclical load/unload latency on Windows, you can set `OLLAMA_KEEP_ALIVE=-1` in your environment variables).*
-
-### 4. Environment Variables
-
-Create a `.env` file in the root directory and add your MongoDB connection string:
+Create a `.env` file in the root directory and add your MongoDB connection string and OpenRouter API key:
 
 ```bash
 MONGODB_URI="mongodb+srv://<username>:<password>@cluster0.xxxx.mongodb.net/?retryWrites=true&w=majority"
+OPENROUTER_API_KEY="<your_openrouter_api_key>"
 ```
 *(Make sure your IP address is whitelisted in the MongoDB Atlas Network Access settings! You can whitelist `0.0.0.0/0` for testing)*
 
-### 5. Initialize Database & Ingest Data
+### 4. Initialize Database & Ingest Data
 
 Configure the Vector Search index and upload the dummy data:
 
@@ -150,16 +149,29 @@ This dataset was intentionally designed with specific "trap" questions and edge 
 
 ## Usage
 
-Launch the Interactive Web UI:
+1. Start the Phoenix Observability Server
+
+Before launching the app, start the Phoenix server in a separate terminal to catch the telemetry data:
+
+```bash
+python -m phoenix.server.main serve
+```
+
+Access the dashboard at `http://localhost:6006`
+
+2. Launch the Interactive Web UI
+
+In your main terminal, start the Streamlit application:
 
 ```bash
 streamlit run core/app.py
 ```
+3. Run Continuous Evaluation (LLMOps)
 
-Run the Headless CLI Version: (Useful for quick terminal testing or debugging LLM output)
+After interacting with the Streamlit app, run the evaluation script. This will download the recent traces from Phoenix, use an LLM-as-a-Judge to score the pipeline's performance, and upload badges (e.g., relevance, faithfulness) directly to your UI dashboard:
 
 ```bash
-python core/main.py
+python core/eval.py
 ```
 
 ### Example Test Queries
